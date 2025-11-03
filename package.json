@@ -27,16 +27,16 @@
     "context",
     "knowledge-base"
   ],
-  "author": "",
+  "author": "Mika Nikkila <mika@td3.pw>",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/dotplan.git"
+    "url": "https://github.com/mikanikkila/dotplan.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/dotplan/issues"
+    "url": "https://github.com/mikanikkila/dotplan/issues"
   },
-  "homepage": "https://github.com/yourusername/dotplan#readme",
+  "homepage": "https://github.com/mikanikkila/dotplan#readme",
   "files": [
     "bin/",
     "src/",
