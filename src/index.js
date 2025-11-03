@@ -581,7 +581,7 @@ export class PlanManager {
       INSERT OR REPLACE INTO plans (id, timestamp, status, title, description, content)
       VALUES (?, ?, ?, ?, ?, ?)
     `);
-    
+
     upsertPlan.run(
       plan.id,
       plan.timestamp,
@@ -591,25 +591,31 @@ export class PlanManager {
       JSON.stringify(plan)
     );
 
+    // Clear existing related data for this plan before re-indexing
+    this.db.prepare('DELETE FROM file_plans WHERE plan_id = ?').run(plan.id);
+    this.db.prepare('DELETE FROM decisions WHERE plan_id = ?').run(plan.id);
+    this.db.prepare('DELETE FROM patterns WHERE plan_id = ?').run(plan.id);
+    this.db.prepare('DELETE FROM constraints WHERE plan_id = ?').run(plan.id);
+
     // Index affected files
-    if (plan.affected_files) {
+    if (plan.affected_files && plan.affected_files.length > 0) {
       const insertFile = this.db.prepare(`
-        INSERT OR REPLACE INTO file_plans (file_path, plan_id, operation)
+        INSERT INTO file_plans (file_path, plan_id, operation)
         VALUES (?, ?, ?)
       `);
-      
+
       for (const file of plan.affected_files) {
         insertFile.run(file, plan.id, 'modified');
       }
     }
 
     // Index decisions
-    if (plan.planning?.decisions) {
+    if (plan.planning?.decisions && plan.planning.decisions.length > 0) {
       const insertDecision = this.db.prepare(`
-        INSERT OR REPLACE INTO decisions (plan_id, description, rationale, alternatives)
+        INSERT INTO decisions (plan_id, description, rationale, alternatives)
         VALUES (?, ?, ?, ?)
       `);
-      
+
       for (const decision of plan.planning.decisions) {
         insertDecision.run(
           plan.id,
@@ -621,24 +627,24 @@ export class PlanManager {
     }
 
     // Index patterns
-    if (plan.implementation?.patterns_established) {
+    if (plan.implementation?.patterns_established && plan.implementation.patterns_established.length > 0) {
       const insertPattern = this.db.prepare(`
-        INSERT OR REPLACE INTO patterns (plan_id, pattern, category)
+        INSERT INTO patterns (plan_id, pattern, category)
         VALUES (?, ?, ?)
       `);
-      
+
       for (const pattern of plan.implementation.patterns_established) {
         insertPattern.run(plan.id, pattern, 'implementation');
       }
     }
 
     // Index constraints
-    if (plan.planning?.constraints) {
+    if (plan.planning?.constraints && plan.planning.constraints.length > 0) {
       const insertConstraint = this.db.prepare(`
-        INSERT OR REPLACE INTO constraints (plan_id, description, constraint_type, severity)
+        INSERT INTO constraints (plan_id, description, constraint_type, severity)
         VALUES (?, ?, ?, ?)
       `);
-      
+
       for (const constraint of plan.planning.constraints) {
         insertConstraint.run(
           plan.id,
