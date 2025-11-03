@@ -1,4 +1,4 @@
-# dotplan 🧠
+# dotplan - CONCEPT RELEASE 🧠
 
 > Persistent memory and decision tracking for AI coding assistants
 
