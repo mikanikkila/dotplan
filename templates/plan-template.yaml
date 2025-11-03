@@ -1,0 +1,90 @@
+# Plan Template
+# This is a sample plan structure for AI Planner
+# Copy and modify for your needs
+
+id: ${DATE}-${SLUG}-${HASH}
+timestamp: ${ISO_TIMESTAMP}
+status: draft  # draft | active | completed | deprecated
+title: ${PLAN_TITLE}
+description: |
+  Brief description of what this plan accomplishes
+
+# Planning Phase
+planning:
+  problem: |
+    What problem are we solving?
+    Why does this need to be done?
+  
+  approach: |
+    High-level approach to solving the problem
+    Key technical strategies
+  
+  constraints:
+    - Must maintain backward compatibility
+    - Performance must not degrade
+    - Follow existing authentication patterns
+  
+  decisions:
+    - description: Use PostgreSQL for data storage
+      rationale: Already in our tech stack, team expertise
+      alternatives_considered:
+        - MongoDB: Would require new expertise
+        - DynamoDB: Too expensive for our scale
+    
+    - description: Implement event-driven architecture
+      rationale: Better scalability and decoupling
+      alternatives_considered:
+        - Direct API calls: Too coupled
+        - Polling: Inefficient
+
+# Implementation Phase
+implementation:
+  actual_approach: |
+    How it was actually implemented
+    Any changes from the original plan
+  
+  deviations:
+    - planned: REST API
+      actual: GraphQL API
+      reason: Better suited for complex queries
+  
+  patterns_established:
+    - All events follow domain:entity:action naming
+    - Use dependency injection for services
+    - Error responses follow RFC 7807
+
+# Relationships to other plans
+relationships:
+  enables:
+    - next-feature-plan-id
+    - dependent-plan-id
+  
+  blocks: []
+  
+  modifies:
+    - existing-system-plan-id
+
+# Files affected by this plan
+affected_files:
+  - src/auth/login.ts
+  - src/middleware/auth.ts
+  - tests/auth.test.ts
+
+# Metadata
+metadata:
+  author: ${GIT_USER}
+  reviewers: []
+  tags:
+    - authentication
+    - security
+    - backend
+  
+  metrics:
+    estimated_hours: 40
+    actual_hours: 0
+    complexity: medium  # low | medium | high
+  
+  links:
+    jira: https://jira.company.com/browse/PROJ-123
+    pr: https://github.com/company/repo/pull/456
+    docs: https://docs.company.com/features/auth

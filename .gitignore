@@ -1,0 +1,21 @@
+node_modules/
+*.log
+.DS_Store
+.env
+.env.local
+.env.*.local
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Editor directories
+.vscode/
+.idea/
+
+# OS files
+Thumbs.db
+
+# Build outputs
+dist/
+build/
