@@ -19,3 +19,6 @@ Thumbs.db
 # Build outputs
 dist/
 build/
+
+# Claude Code integration (created in user projects, not in repo)
+.claude/

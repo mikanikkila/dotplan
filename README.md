@@ -86,7 +86,9 @@ If you're using Claude Code, initialize with the `--claude` flag to get a dedica
 npx dotplan init --claude
 ```
 
-This creates slash commands (`/memory`, `/plan`) and a sub-agent that automatically manages your project's architectural memory. [See full Claude Code integration docs](#claude-code-integration).
+This creates a `.claude/` directory **in your project** with slash commands (`/memory`, `/plan`) and a sub-agent that automatically manages your project's architectural memory. [See full Claude Code integration docs](#claude-code-integration).
+
+**Note:** The `.claude/` directory is project-specific and should not be committed to git (it's auto-added to `.gitignore`).
 
 ---
 
