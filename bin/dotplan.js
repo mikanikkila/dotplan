@@ -8,6 +8,7 @@ import { dirname, join } from 'path';
 import fs from 'fs/promises';
 import { PlanManager } from '../src/index.js';
 import { GitIntegration } from '../src/git/hooks.js';
+import { setupClaudeAgent } from '../src/claude/setup.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -25,6 +26,7 @@ program
   .command('init')
   .description('Initialize AI Planner in current project')
   .option('--no-git', 'Skip git hooks setup')
+  .option('--claude', 'Setup Claude Code integration')
   .action(async (options) => {
     const spinner = ora('Initializing AI Planner...').start();
     
@@ -74,14 +76,41 @@ program
         }
       }
 
+      // Setup Claude Code integration if requested
+      if (options.claude) {
+        try {
+          spinner.text = 'Setting up Claude Code integration...';
+          const claudeSetup = await setupClaudeAgent(process.cwd());
+          spinner.succeed(chalk.green('✨ AI Planner initialized with Claude Code integration!'));
+
+          console.log('\n' + chalk.cyan('Claude Code integration created:'));
+          console.log('  📁 ' + chalk.white('.claude/agents/dotplan-memory.json'));
+          console.log('  📁 ' + chalk.white('.claude/commands/memory.md'));
+          console.log('  📁 ' + chalk.white('.claude/commands/plan.md'));
+          console.log('\n' + chalk.yellow('Slash commands available:'));
+          console.log('  ' + chalk.white('/memory') + ' - Get project context and memory');
+          console.log('  ' + chalk.white('/plan') + '   - Create a new architectural plan');
+          console.log('\n' + chalk.gray('Restart Claude Code to load the agent.'));
+        } catch (claudeError) {
+          spinner.warn(chalk.yellow('Claude integration setup failed: ' + claudeError.message));
+        }
+      }
+
       manager.close();
 
-      spinner.succeed(chalk.green('✨ AI Planner initialized successfully!'));
+      if (!options.claude) {
+        spinner.succeed(chalk.green('✨ AI Planner initialized successfully!'));
+      }
 
       console.log('\n' + chalk.cyan('Next steps:'));
       console.log('  1. Create your first plan: ' + chalk.yellow('npx dotplan create "Your plan title"'));
       console.log('  2. Get context: ' + chalk.yellow('npx dotplan context'));
-      console.log('  3. View help: ' + chalk.yellow('npx dotplan --help'));
+      if (options.claude) {
+        console.log('  3. Use Claude slash commands: ' + chalk.yellow('/memory') + ' or ' + chalk.yellow('/plan'));
+      } else {
+        console.log('  3. View help: ' + chalk.yellow('npx dotplan --help'));
+        console.log('\n' + chalk.gray('  Tip: Run with --claude to setup Claude Code integration'));
+      }
 
     } catch (error) {
       spinner.fail(chalk.red('Failed to initialize: ' + error.message));

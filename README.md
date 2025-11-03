@@ -78,6 +78,16 @@ npm install --save-dev dotplan
 npx dotplan init
 ```
 
+### Claude Code Integration
+
+If you're using Claude Code, initialize with the `--claude` flag to get a dedicated memory agent:
+
+```bash
+npx dotplan init --claude
+```
+
+This creates slash commands (`/memory`, `/plan`) and a sub-agent that automatically manages your project's architectural memory. [See full Claude Code integration docs](#claude-code-integration).
+
 ---
 
 ## Getting Started
@@ -206,12 +216,19 @@ npx dotplan init [options]
 
 Options:
   --no-git    Skip git hooks setup
+  --claude    Setup Claude Code integration (adds memory agent and slash commands)
 ```
 
-**Example:**
+**Examples:**
 ```bash
 cd my-project
 npx dotplan init
+
+# With Claude Code integration
+npx dotplan init --claude
+
+# Skip git hooks
+npx dotplan init --no-git
 ```
 
 #### `create [title]`
@@ -521,20 +538,77 @@ This will give you the project history, decisions, patterns, and constraints.
 Always check this before making changes."
 ```
 
-### Claude Code
+### Claude Code Integration
 
-Claude Code can directly use dotplan:
+dotplan includes built-in Claude Code integration with a dedicated memory agent.
+
+#### Setup
+
+Initialize with Claude integration:
+
+```bash
+npx dotplan init --claude
+```
+
+This creates:
+- `.claude/agents/dotplan-memory.json` - Memory management agent
+- `.claude/commands/memory.md` - `/memory` slash command
+- `.claude/commands/plan.md` - `/plan` slash command
+- `.claude/README.md` - Integration documentation
+
+**Restart Claude Code to load the agent.**
+
+#### Usage
+
+**Slash Commands:**
+
+```bash
+# Get project context and memory
+/memory
+
+# Create a new plan
+/plan
+```
+
+**The memory agent automatically:**
+1. Checks context before making changes
+2. Creates plans for new features
+3. Documents decisions with rationale
+4. Updates plans as work progresses
+5. Maintains architectural consistency
+
+**Example conversation:**
 
 ```
-Me: "Add user authentication to the app"
+You: "Add user authentication to the app"
 
-Claude Code will:
-1. Run: npx dotplan context --json
-2. Read established patterns and constraints
-3. Create plan: npx dotplan create "Add user authentication"
-4. Implement following established patterns
-5. Complete: npx dotplan complete --summary "Auth added"
+Claude Code:
+1. Runs: npx dotplan context --json
+2. Reviews: past decisions, patterns, constraints
+3. Creates plan: npx dotplan create "Add JWT authentication"
+4. Implements following established patterns
+5. Documents decisions in plan YAML
+6. Completes: npx dotplan complete --summary "Auth added"
 ```
+
+#### Agent Configuration
+
+The dotplan-memory agent is defined in `.claude/agents/dotplan-memory.json`:
+
+```json
+{
+  "name": "dotplan-memory",
+  "description": "Manages architectural memory and context",
+  "instructions": "... detailed instructions ...",
+  "interactionPatterns": [
+    "Proactively checks context before making changes",
+    "Creates plans for new features",
+    "Documents decisions with clear rationale"
+  ]
+}
+```
+
+You can customize the agent instructions to match your workflow.
 
 ### GitHub Copilot / Cursor
 
