@@ -33,27 +33,26 @@ program
       await fs.mkdir('.plan', { recursive: true });
       await fs.mkdir('.plan/plans', { recursive: true });
       await fs.mkdir('.plan/.context', { recursive: true });
-      
+
       // Initialize database
       const manager = new PlanManager(process.cwd());
       await manager.initialize();
-      
+
       // Create config file
       const config = {
         version: pkg.version,
         created: new Date().toISOString(),
         settings: {
           autoIndex: true,
-          gitIntegration: options.git,
-          contextPort: 7632
+          gitIntegration: options.git
         }
       };
-      
+
       await fs.writeFile(
         '.plan/config.json',
         JSON.stringify(config, null, 2)
       );
-      
+
       // Create .gitignore
       const gitignore = `# AI Planner generated files
 .plan/index.db
@@ -63,20 +62,27 @@ program
 .plan/sessions/
 `;
       await fs.writeFile('.plan/.gitignore', gitignore);
-      
+
       // Setup git hooks if requested
       if (options.git) {
-        const git = new GitIntegration(process.cwd());
-        await git.setupHooks();
+        try {
+          const git = new GitIntegration(process.cwd());
+          await git.setupHooks();
+        } catch (gitError) {
+          // Git integration failed, but that's okay
+          console.log(chalk.yellow('\n⚠️  Git integration skipped: ' + gitError.message));
+        }
       }
-      
+
+      manager.close();
+
       spinner.succeed(chalk.green('✨ AI Planner initialized successfully!'));
-      
+
       console.log('\n' + chalk.cyan('Next steps:'));
-      console.log('  1. Create your first plan: ' + chalk.yellow('npx dotplan create'));
-      console.log('  2. Start context server: ' + chalk.yellow('npx dotplan watch'));
+      console.log('  1. Create your first plan: ' + chalk.yellow('npx dotplan create "Your plan title"'));
+      console.log('  2. Get context: ' + chalk.yellow('npx dotplan context'));
       console.log('  3. View help: ' + chalk.yellow('npx dotplan --help'));
-      
+
     } catch (error) {
       spinner.fail(chalk.red('Failed to initialize: ' + error.message));
       process.exit(1);
@@ -116,15 +122,17 @@ program
   .action(async (title, options) => {
     try {
       const manager = new PlanManager(process.cwd());
-      
+      await manager.initialize();
+
       if (!title) {
         // Interactive mode
         console.log(chalk.cyan('Creating new plan interactively...'));
         // In real implementation, you'd use inquirer for prompts
         console.log(chalk.yellow('Interactive mode not yet implemented. Please provide a title.'));
+        manager.close();
         process.exit(1);
       }
-      
+
       const plan = await manager.createPlan({
         title,
         description: options.description,
@@ -137,6 +145,8 @@ program
       console.log(chalk.green(`✅ Created plan: ${plan.id}`));
       console.log(chalk.gray(`   File: .plan/plans/${plan.id}.yaml`));
       console.log(chalk.cyan(`   Active plan set to: ${plan.id}`));
+
+      manager.close();
 
     } catch (error) {
       console.error(chalk.red('Failed to create plan: ' + error.message));
@@ -153,7 +163,8 @@ program
   .action(async (query, options) => {
     try {
       const manager = new PlanManager(process.cwd());
-      
+      await manager.initialize();
+
       let context;
       if (options.file) {
         context = await manager.getFileContext(options.file);
@@ -162,13 +173,13 @@ program
       } else {
         context = await manager.getCurrentContext();
       }
-      
+
       if (options.json) {
         console.log(JSON.stringify(context, null, 2));
       } else {
         // Pretty print context
         console.log(chalk.cyan('\n📚 Relevant Context:\n'));
-        
+
         if (context.plans && context.plans.length > 0) {
           console.log(chalk.yellow('Related Plans:'));
           context.plans.forEach(plan => {
@@ -178,7 +189,7 @@ program
             }
           });
         }
-        
+
         if (context.decisions && context.decisions.length > 0) {
           console.log(chalk.yellow('\nKey Decisions:'));
           context.decisions.forEach(decision => {
@@ -186,14 +197,14 @@ program
             console.log(`    ${chalk.gray('Rationale: ' + decision.rationale)}`);
           });
         }
-        
+
         if (context.constraints && context.constraints.length > 0) {
           console.log(chalk.yellow('\nConstraints:'));
           context.constraints.forEach(constraint => {
             console.log(`  ⚠️  ${constraint.description}`);
           });
         }
-        
+
         if (context.patterns && context.patterns.length > 0) {
           console.log(chalk.yellow('\nEstablished Patterns:'));
           context.patterns.forEach(pattern => {
@@ -201,7 +212,9 @@ program
           });
         }
       }
-      
+
+      manager.close();
+
     } catch (error) {
       console.error(chalk.red('Failed to get context: ' + error.message));
       process.exit(1);
@@ -561,26 +574,30 @@ program
   .description('Verify implementation matches plans')
   .action(async (files) => {
     const spinner = ora('Verifying implementation...').start();
-    
+
     try {
       const manager = new PlanManager(process.cwd());
+      await manager.initialize({ startWatcher: false });
       const results = await manager.verifyImplementation(files);
-      
+
       if (results.valid) {
         spinner.succeed(chalk.green('✅ Implementation matches plans'));
       } else {
         spinner.fail(chalk.red('❌ Implementation deviates from plans'));
-        
+
         if (results.violations.length > 0) {
           console.log(chalk.yellow('\nViolations:'));
           results.violations.forEach(v => {
             console.log(`  • ${v.file}: ${v.message}`);
           });
         }
-        
+
+        manager.close();
         process.exit(1);
       }
-      
+
+      manager.close();
+
     } catch (error) {
       spinner.fail(chalk.red('Verification failed: ' + error.message));
       process.exit(1);
@@ -596,18 +613,20 @@ program
   .action(async (options) => {
     try {
       const manager = new PlanManager(process.cwd());
+      await manager.initialize({ startWatcher: false });
       const plans = await manager.listPlans({
         status: options.status,
         limit: parseInt(options.limit)
       });
-      
+
       if (plans.length === 0) {
         console.log(chalk.gray('No plans found'));
+        manager.close();
         return;
       }
-      
+
       console.log(chalk.cyan(`\n📋 Plans (${plans.length}):\n`));
-      
+
       plans.forEach(plan => {
         const statusColor = {
           'draft': chalk.gray,
@@ -615,7 +634,7 @@ program
           'completed': chalk.green,
           'deprecated': chalk.red
         }[plan.status] || chalk.white;
-        
+
         console.log(`${statusColor('●')} ${plan.title}`);
         console.log(`  ${chalk.gray(plan.id)} - ${plan.timestamp}`);
         if (plan.description) {
@@ -623,7 +642,9 @@ program
         }
         console.log();
       });
-      
+
+      manager.close();
+
     } catch (error) {
       console.error(chalk.red('Failed to list plans: ' + error.message));
       process.exit(1);
@@ -637,22 +658,23 @@ program
   .action(async () => {
     try {
       const manager = new PlanManager(process.cwd());
+      await manager.initialize({ startWatcher: false });
       const brief = await manager.getProjectBrief();
-      
+
       console.log(chalk.cyan('\n📊 Project Brief\n'));
-      
+
       console.log(chalk.yellow('Statistics:'));
       console.log(`  Total Plans: ${brief.stats.total}`);
       console.log(`  Active: ${brief.stats.active}`);
       console.log(`  Completed: ${brief.stats.completed}`);
-      
+
       if (brief.recentActivity.length > 0) {
         console.log(chalk.yellow('\nRecent Activity:'));
         brief.recentActivity.forEach(activity => {
           console.log(`  • ${activity.title} (${chalk.gray(activity.timestamp)})`);
         });
       }
-      
+
       if (brief.activePlans.length > 0) {
         console.log(chalk.yellow('\nActive Plans:'));
         brief.activePlans.forEach(plan => {
@@ -662,14 +684,16 @@ program
           }
         });
       }
-      
+
       if (brief.suggestions.length > 0) {
         console.log(chalk.yellow('\n💡 Suggestions:'));
         brief.suggestions.forEach(suggestion => {
           console.log(`  • ${suggestion}`);
         });
       }
-      
+
+      manager.close();
+
     } catch (error) {
       console.error(chalk.red('Failed to generate brief: ' + error.message));
       process.exit(1);
