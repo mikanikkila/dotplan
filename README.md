@@ -1,3 +1,6 @@
+
+![dotplan logo](src/assets/dotplan_logo.png)
+
 # dotplan - CONCEPT RELEASE 🧠
 
 > Persistent memory and decision tracking for AI coding assistants
