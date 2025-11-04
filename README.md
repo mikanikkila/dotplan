@@ -5,7 +5,7 @@
 
 > Persistent memory and decision tracking for AI coding assistants
 
-**dotplan** gives AI assistants a memory that persists across sessions. It tracks your architectural decisions, established patterns, and project constraints so you never have to re-explain context to your AI assistant again.
+**dotplan** gives AI assistants a **schematic memory** that persists across sessions. It creates a structured model of your project; tracking architectural decisions, patterns, and constraints keeping the developemnt on-track.
 
 ## Table of Contents
 
@@ -23,18 +23,6 @@
 ---
 
 ## Why dotplan?
-
-### The Problem
-
-AI coding assistants forget everything between sessions. Every time you start a new conversation, you have to:
-- Re-explain your architecture
-- Repeat past decisions and why they were made
-- Remind the AI about established patterns
-- Warn about constraints it should respect
-
-**This wastes 2-3 hours per developer per day.**
-
-### The Solution
 
 dotplan creates a persistent memory system:
 - ✅ **Plans** document what you're building and why
@@ -650,6 +638,33 @@ npx dotplan verify src/**/*.js
 ---
 
 ## How It Works
+
+### A Schematic Memory for Architecture
+
+dotplan is not just a key-value store; it's a **schematic memory**. In cognitive science, a schema is a mental framework that helps organize and interpret information. dotplan applies this concept to your codebase, creating a structured, relational model of your project's history and intent.
+
+This is different from other memory systems that just index code files. A schematic memory helps an AI understand the **"why"** behind the code, not just the **"what"**.
+
+**1. It Captures Intent, Not Just Facts**
+The system's schema is explicitly designed to store intent. It uses distinct structures for:
+- **Decisions:** Captures the *what*, the *why* (rationale), and the *what else* (alternatives considered).
+- **Constraints:** Defines rules that must be followed.
+- **Patterns:** Records established code conventions.
+
+This allows an AI to ask high-level questions ("*Why* do we use JWTs?") instead of just performing keyword searches.
+
+**2. It Creates a Relational Knowledge Graph**
+dotplan maps relationships between concepts:
+- **Plans** are linked to other plans they `enable`, `block`, or `modify`.
+- **Files** are linked to the plans that changed them.
+- **Decisions, constraints, and patterns** are linked to the plan where they were established.
+
+This creates a queryable graph of your project's history, allowing you to trace a single line of code all the way back to the architectural decision that justified it.
+
+**3. It Enables Precise, Reliable Queries**
+The structured schema allows for precise and reliable queries. An AI can be instructed to `list all constraints` or `find the rationale for authentication decisions`. This turns ambiguous requests into verifiable actions, making the AI's behavior more consistent and trustworthy.
+
+In short, dotplan gives your AI a **mental model** of your project, enabling it to act as a true partner that understands and respects your architectural philosophy.
 
 ### Architecture Overview
 
