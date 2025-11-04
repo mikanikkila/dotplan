@@ -1,11 +1,11 @@
 
 ![dotplan logo](src/assets/dotplan_logo.png)
 
-# dotplan - CONCEPT RELEASE 🧠
+# dotplan (ALPHA) 🧠
 
 > Persistent memory and decision tracking for AI coding assistants
 
-**dotplan** gives AI assistants a **schematic memory** that persists across sessions. It creates a structured model of your project; tracking architectural decisions, patterns, and constraints keeping the developemnt on-track.
+**dotplan** gives AI assistants a **schematic memory** that persists across sessions. It creates a structured model of your project; tracking architectural decisions, patterns, and constraints keeping the development on-track.
 
 ## Table of Contents
 
